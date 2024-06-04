@@ -4,8 +4,8 @@ use std::sync::Arc;
 use indicatif::{ParallelProgressIterator, ProgressStyle};
 use rayon::prelude::*;
 use rayon::ThreadPoolBuilder;
-use tokio::fs::File;
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::fs::{File, OpenOptions};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -27,7 +27,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .collect();
 
     results.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-    results.iter().for_each(|(word, info)| println!("{}: {}", word, info));
+    let expected_information = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .append(true)
+        .open("expected_information.txt")
+        .await?;
+    results.iter().for_each(|(word, e)| writeln!(expected_information, format!("{}={}", word, e)));
 
     Ok(())
 }
