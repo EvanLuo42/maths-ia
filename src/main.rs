@@ -34,6 +34,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .create(true)
         .write(true)
         .append(true)
+        .truncate(true)
         .open("expected_information.txt")?;
     results.iter().for_each(|(word, e)| writeln!(expected_information, "{}={}", word, e).unwrap());
 
