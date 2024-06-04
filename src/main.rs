@@ -1,11 +1,14 @@
 use std::error::Error;
+use std::fs::OpenOptions;
 use std::sync::Arc;
+
+use std::io::Write;
 
 use indicatif::{ParallelProgressIterator, ProgressStyle};
 use rayon::prelude::*;
 use rayon::ThreadPoolBuilder;
-use tokio::fs::{File, OpenOptions};
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::fs::File;
+use tokio::io::{AsyncBufReadExt, BufReader};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -27,13 +30,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .collect();
 
     results.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-    let expected_information = OpenOptions::new()
+    let mut expected_information = OpenOptions::new()
         .create(true)
         .write(true)
         .append(true)
-        .open("expected_information.txt")
-        .await?;
-    results.iter().for_each(|(word, e)| writeln!(expected_information, format!("{}={}", word, e)));
+        .open("expected_information.txt")?;
+    results.iter().for_each(|(word, e)| writeln!(expected_information, "{}={}", word, e).unwrap());
 
     Ok(())
 }
